@@ -1,6 +1,12 @@
 import "./App.css";
 import { BASE_URL } from "./env";
 import React, { useState, useEffect } from "react";
+import homePng from "./assets/img/home.png";
+import transactionPng from "./assets/img/transaction.png";
+import userPng from "./assets/img/user.png";
+import HelpPng from "./assets/img/Help.png";
+import LogoutPng from "./assets/img/Logout.png";
+import incomePng from "./assets/img/income.png";
 function App() {
   const [formResponse, setFormResponse] = useState([]);
   const [openModal, setOpenModal] = useState(false);
@@ -12,6 +18,14 @@ function App() {
   const [address, setAddress] = useState("");
   const [name, setName] = useState("");
   const [modalItem, setModalItem] = useState();
+  const [active1, setActive1] = useState(true);
+  const [active2, setActive2] = useState(false);
+  const [active3, setActive3] = useState(false);
+  const [active4, setActive4] = useState(false);
+  const [active5, setActive5] = useState(false);
+  const [active6, setActive6] = useState(false);
+  const [loadTable, setLoadTable] = useState(false);
+
   useEffect(() => {
     fetch(BASE_URL + "/get-formData", {
       method: "GET",
@@ -24,7 +38,7 @@ function App() {
           setFormResponse(data.message);
         }
       });
-  }, []);
+  }, [loadTable]);
   const handleSearch = async () => {
     await fetch(
       BASE_URL +
@@ -180,13 +194,13 @@ function App() {
     // console.log("item", item);
     return (
       <div
-        className="container myModal"
+        className="container-fluid myModal"
         id="exampleModal"
         tabindex="-1"
         aria-labelledby="exampleModalLabel"
         aria-hidden="true"
       >
-        <div className="modal-dialog  modal-dialog-scrollable">
+        <div className="modal-dialog modal-dialog-scrollable">
           <div className="modal-content">
             <div className="modal-header">
               <h5 className="modal-title text-dark" id="exampleModalLabel">
@@ -245,24 +259,30 @@ function App() {
               </p>
               <p className="text-dark shadow-sm">
                 <span className="font-weight-bold">Services Offered: </span>
-                {modalItem.services.map((service, ind) => {
-                  return (
-                    <div className="ml-4 my-2 ">
-                      <h6>
-                        <span className="font-weight-bold">Service: </span>
-                        {service.services}
-                      </h6>
-                      <p>
-                        <span className="font-weight-bold">Price: </span>₹
-                        {service.price}
-                      </p>
-                      <p>
-                        <span className="font-weight-bold">Portfolio: </span>
-                        {service.portfolio_link}
-                      </p>
-                    </div>
-                  );
-                })}
+                <table className="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>Services</th>
+                      <th>Price</th>
+                      <th>Portfolio</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {modalItem.services.map((service, ind) => {
+                      return (
+                        <tr>
+                          <td> {service.services}</td>
+                          <td>₹{service.price}</td>
+                          <td>
+                            <a href={service.portfolio_link}>
+                              {service.portfolio_link}
+                            </a>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </p>
             </div>
             <div className="modal-footer">
@@ -288,7 +308,7 @@ function App() {
   const FormResponseData = () => {
     return (
       <>
-        <table class="table table-stripped">
+        <table class="table table-striped">
           <thead>
             <tr>
               <th scope="col">#</th>
@@ -303,7 +323,7 @@ function App() {
           </thead>
           <tbody>
             {formResponse.map((item, index) => {
-              return (
+              return item.registered ? (
                 <tr key={index + 1}>
                   <th scope="row">{index + 1}</th>
                   <td>{item.name}</td>
@@ -328,6 +348,326 @@ function App() {
                   </td>
                   {openModal ? <Modal /> : null}
                 </tr>
+              ) : null;
+            })}
+          </tbody>
+        </table>
+      </>
+    );
+  };
+  const NewFormResponseData = () => {
+    const registerUser = async (email) => {
+      await fetch(BASE_URL + "/register-formData", {
+        method: "post",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          console.log(data.message);
+          if (!data.error) {
+            setLoadTable(!loadTable);
+          }
+        })
+        .catch((err) => {
+          console.log("Error", err);
+        });
+    };
+    const deleteUser = async (email) => {
+      // console.log(email);
+      await fetch(BASE_URL + "/delete-formData/" + email, {
+        method: "delete",
+        headers: { "Content-Type": "application/json" },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          console.log(data.message);
+          if (!data.error) {
+            setLoadTable(!loadTable);
+            alert(data.message);
+          }
+        })
+        .catch((err) => {
+          console.log("Error", err);
+        });
+    };
+
+    return (
+      <>
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Name</th>
+              <th scope="col">Email</th>
+              <th scope="col">Work Mode</th>
+              <th scope="col">Work Method</th>
+              <th scope="col">Skills</th>
+              <th scope="col">Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            {formResponse.map((item, index) => {
+              return item.registered ? null : (
+                <tr key={index + 1}>
+                  <th scope="row">{index + 1}</th>
+                  <td>{item.name}</td>
+                  <td>{item.email}</td>
+
+                  <td>{item.work_mode}</td>
+                  <td>{item.work_method}</td>
+                  <td>
+                    {item.skills.map((skill, ind) => {
+                      return <>{skill.length > 1 ? skill + "," : skill}</>;
+                    })}
+                  </td>
+                  <td
+                    type="button"
+                    className="btn btn-primary my-1 p-1"
+                    onClick={() => {
+                      setOpenModal(!openModal);
+                      setModalItem(item);
+                    }}
+                  >
+                    Open
+                  </td>
+                  {openModal ? <Modal /> : null}
+                  <td
+                    type="button"
+                    className="btn btn-warning my-1 ml-2 p-1"
+                    onClick={() => {
+                      registerUser(item.email);
+                    }}
+                  >
+                    Register
+                  </td>
+                  <td
+                    type="button"
+                    className="btn btn-danger my-1 ml-2 p-1"
+                    onClick={() => {
+                      deleteUser(item.email);
+                    }}
+                  >
+                    Delete
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </>
+    );
+  };
+
+  const SideBarMenu = () => {
+    return (
+      <>
+        <h4 className="font-weight-bold"> ReverBlunt</h4>
+        <div className="d-flex text-left align-items-start flex-column my-3">
+          <ul style={{ listStyle: "none" }}>
+            <li>
+              <p
+                style={{ cursor: "pointer" }}
+                className={
+                  active1
+                    ? "font-weight-bold bg-profile-menu"
+                    : "font-weight-bold text-primary-50"
+                }
+                onClick={() => {
+                  setActive1(true);
+                  setActive2(false);
+                  setActive3(false);
+                  setActive4(false);
+                  setActive5(false);
+                  setActive6(false);
+                }}
+              >
+                <img
+                  src={homePng}
+                  alt={"https://www.gigzman.com"}
+                  style={{ width: "15px", height: "15px" }}
+                />{" "}
+                Dashboard
+              </p>
+            </li>
+            <li>
+              <p
+                style={{ cursor: "pointer" }}
+                className={
+                  active2
+                    ? "font-weight-bold bg-profile-menu"
+                    : "font-weight-bold text-primary-50"
+                }
+                onClick={() => {
+                  setActive1(false);
+                  setActive2(true);
+                  setActive3(false);
+                  setActive4(false);
+                  setActive5(false);
+                  setActive6(false);
+                }}
+              >
+                <img
+                  src={transactionPng}
+                  alt={"https://www.gigzman.com"}
+                  style={{ width: "15px", height: "15px" }}
+                />{" "}
+                New Requests
+              </p>
+            </li>
+            <li>
+              <p
+                style={{ cursor: "pointer" }}
+                className={
+                  active3
+                    ? "font-weight-bold bg-profile-menu"
+                    : "font-weight-bold text-primary-50"
+                }
+                onClick={() => {
+                  setActive1(false);
+                  setActive2(false);
+                  setActive3(true);
+                  setActive4(false);
+                  setActive5(false);
+                  setActive6(false);
+                }}
+              >
+                <img
+                  src={userPng}
+                  alt={"https://www.gigzman.com"}
+                  style={{ width: "15px", height: "15px" }}
+                />{" "}
+                Database
+              </p>
+            </li>
+            <li>
+              <p
+                style={{ cursor: "pointer" }}
+                className={
+                  active4
+                    ? "font-weight-bold bg-profile-menu"
+                    : "font-weight-bold text-primary-50"
+                }
+                onClick={() => {
+                  setActive1(false);
+                  setActive2(false);
+                  setActive3(false);
+                  setActive4(true);
+                  setActive5(false);
+                  setActive6(false);
+                }}
+              >
+                <img
+                  src={incomePng}
+                  alt={"https://www.gigzman.com"}
+                  style={{ width: "18px", height: "18px" }}
+                />{" "}
+                Website Leads
+              </p>
+            </li>
+          </ul>
+          <ul style={{ listStyle: "none", alignItems: "center" }}>
+            <li>
+              <p
+                style={{ cursor: "pointer" }}
+                className={
+                  active5
+                    ? "font-weight-bold bg-profile-menu"
+                    : "font-weight-bold text-primary-50"
+                }
+                onClick={() => {
+                  setActive1(false);
+                  setActive2(false);
+                  setActive3(false);
+                  setActive4(false);
+                  setActive5(true);
+                  setActive6(false);
+                }}
+              >
+                <img
+                  src={HelpPng}
+                  alt={"https://www.gigzman.com"}
+                  style={{ width: "15px", height: "15px" }}
+                />{" "}
+                Help
+              </p>
+            </li>
+            <li>
+              <p
+                style={{ cursor: "pointer" }}
+                className={
+                  active6
+                    ? "font-weight-bold bg-profile-menu"
+                    : "font-weight-bold text-primary-50"
+                }
+                onClick={() => {
+                  setActive1(false);
+                  setActive2(false);
+                  setActive3(false);
+                  setActive4(false);
+                  setActive5(false);
+                  setActive6(true);
+                  // logoutUser();
+                }}
+              >
+                <img
+                  src={LogoutPng}
+                  alt={"https://www.gigzman.com"}
+                  style={{ width: "15px", height: "15px" }}
+                />{" "}
+                Logout
+              </p>
+            </li>
+          </ul>
+        </div>
+      </>
+    );
+  };
+  const WebsiteLeads = () => {
+    const [websiteLeads, setWebsiteLeads] = useState([]);
+    useEffect(() => {
+      fetch(BASE_URL + "/get-websiteLeads", {
+        method: "get",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          console.log("Website leads");
+          setWebsiteLeads(data.message);
+        });
+    }, []);
+    return (
+      <>
+        <table className="table table-striped">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Mobile</th>
+              <th>Service</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {websiteLeads.map((item, index) => {
+              return (
+                <tr>
+                  <td key={index}>{index + 1}</td>
+                  <td>{item.name}</td>
+                  <td>{item.phoneNumber}</td>
+                  <td>{item.service}</td>
+                  <td
+                    type="a"
+                    href={`tel:${item.phoneNumber}`}
+                    className="btn btn-success"
+                  >
+                    Call
+                  </td>
+                </tr>
               );
             })}
           </tbody>
@@ -336,15 +676,29 @@ function App() {
     );
   };
   return (
-    <div className="App">
-      <TopBar />
-      {formResponse.length == 0 ? (
-        <h1 className="d-flex justify-content-center align-items-center text-center">
-          No data Available
-        </h1>
-      ) : (
-        <FormResponseData />
-      )}
+    <div className="App overflow-hidden">
+      <div className="row">
+        <div className="col-sm-12 col-md-2 col-lg-2 col-xl-2">
+          <SideBarMenu />
+        </div>
+        <div className="col-sm-12 col-md-10 col-lg-10 col-xl-10 mx-auto">
+          {active1 ? <h1 className="text-center ">Dashboard</h1> : null}
+          {active2 ? <NewFormResponseData /> : null}
+          {active3 ? (
+            <>
+              <TopBar />
+              {formResponse.length == 0 ? (
+                <h1 className="d-flex justify-content-center align-items-center text-center">
+                  No data Available
+                </h1>
+              ) : (
+                <FormResponseData />
+              )}
+            </>
+          ) : null}
+          {active4 ? <WebsiteLeads /> : null}
+        </div>
+      </div>
     </div>
   );
 }
