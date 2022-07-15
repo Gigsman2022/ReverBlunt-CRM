@@ -243,7 +243,7 @@ function App() {
                   return <>{skill.length > 1 ? skill + "," : skill}</>;
                 })}
               </p>
-              <p className="text-dark ">
+              <p className="text-dark shadow-sm">
                 <span className="font-weight-bold">Services Offered: </span>
                 {modalItem.services.map((service, ind) => {
                   return (
