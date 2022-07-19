@@ -7,6 +7,8 @@ import userPng from "./assets/img/user.png";
 import HelpPng from "./assets/img/Help.png";
 import LogoutPng from "./assets/img/Logout.png";
 import incomePng from "./assets/img/income.png";
+import WebsiteLeads from "./Components/WebsiteLeads";
+import NewFormResponseData from "./Components/NewFormResponseData";
 function App() {
   const [formResponse, setFormResponse] = useState([]);
   const [openModal, setOpenModal] = useState(false);
@@ -18,13 +20,13 @@ function App() {
   const [address, setAddress] = useState("");
   const [name, setName] = useState("");
   const [modalItem, setModalItem] = useState();
+  const [loadTable, setLoadTable] = useState(false);
   const [active1, setActive1] = useState(true);
   const [active2, setActive2] = useState(false);
   const [active3, setActive3] = useState(false);
   const [active4, setActive4] = useState(false);
   const [active5, setActive5] = useState(false);
   const [active6, setActive6] = useState(false);
-  const [loadTable, setLoadTable] = useState(false);
 
   useEffect(() => {
     fetch(BASE_URL + "/get-formData", {
@@ -33,12 +35,12 @@ function App() {
     })
       .then((res) => res.json())
       .then((data) => {
-        // console.log(data);
+        console.log(data);
         if (!data.error) {
           setFormResponse(data.message);
         }
       });
-  }, [loadTable]);
+  }, []);
   const handleSearch = async () => {
     await fetch(
       BASE_URL +
@@ -63,9 +65,10 @@ function App() {
     )
       .then((res) => res.json())
       .then((data) => {
-        // console.log(data);
+        console.log(data);
         if (!data.error) {
           setFormResponse(data.message);
+          setLoadTable(!loadTable);
         }
       });
   };
@@ -96,7 +99,11 @@ function App() {
               <option selected>Skills</option>
               <option value="java">Java</option>
               <option value="javascript">Javascript</option>
+              <option value="reactjs">React.js</option>
+              <option value="nextjs">Next.js</option>
               <option value="mongodb">MongoDB</option>
+              <option value="shopify">Shopify</option>
+              <option value="wordpress">Wordpress</option>
             </select>
           </li>
           <li>
@@ -355,111 +362,6 @@ function App() {
       </>
     );
   };
-  const NewFormResponseData = () => {
-    const registerUser = async (email) => {
-      await fetch(BASE_URL + "/register-formData", {
-        method: "post",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email,
-        }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          console.log(data.message);
-          if (!data.error) {
-            setLoadTable(!loadTable);
-          }
-        })
-        .catch((err) => {
-          console.log("Error", err);
-        });
-    };
-    const deleteUser = async (email) => {
-      // console.log(email);
-      await fetch(BASE_URL + "/delete-formData/" + email, {
-        method: "delete",
-        headers: { "Content-Type": "application/json" },
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          console.log(data.message);
-          if (!data.error) {
-            setLoadTable(!loadTable);
-            alert(data.message);
-          }
-        })
-        .catch((err) => {
-          console.log("Error", err);
-        });
-    };
-
-    return (
-      <>
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">Name</th>
-              <th scope="col">Email</th>
-              <th scope="col">Work Mode</th>
-              <th scope="col">Work Method</th>
-              <th scope="col">Skills</th>
-              <th scope="col">Details</th>
-            </tr>
-          </thead>
-          <tbody>
-            {formResponse.map((item, index) => {
-              return item.registered ? null : (
-                <tr key={index + 1}>
-                  <th scope="row">{index + 1}</th>
-                  <td>{item.name}</td>
-                  <td>{item.email}</td>
-
-                  <td>{item.work_mode}</td>
-                  <td>{item.work_method}</td>
-                  <td>
-                    {item.skills.map((skill, ind) => {
-                      return <>{skill.length > 1 ? skill + "," : skill}</>;
-                    })}
-                  </td>
-                  <td
-                    type="button"
-                    className="btn btn-primary my-1 p-1"
-                    onClick={() => {
-                      setOpenModal(!openModal);
-                      setModalItem(item);
-                    }}
-                  >
-                    Open
-                  </td>
-                  {openModal ? <Modal /> : null}
-                  <td
-                    type="button"
-                    className="btn btn-warning my-1 ml-2 p-1"
-                    onClick={() => {
-                      registerUser(item.email);
-                    }}
-                  >
-                    Register
-                  </td>
-                  <td
-                    type="button"
-                    className="btn btn-danger my-1 ml-2 p-1"
-                    onClick={() => {
-                      deleteUser(item.email);
-                    }}
-                  >
-                    Delete
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </>
-    );
-  };
 
   const SideBarMenu = () => {
     return (
@@ -625,60 +527,11 @@ function App() {
       </>
     );
   };
-  const WebsiteLeads = () => {
-    const [websiteLeads, setWebsiteLeads] = useState([]);
-    useEffect(() => {
-      fetch(BASE_URL + "/get-websiteLeads", {
-        method: "get",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          console.log("Website leads");
-          setWebsiteLeads(data.message);
-        });
-    }, []);
-    return (
-      <>
-        <table className="table table-striped">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Name</th>
-              <th>Mobile</th>
-              <th>Service</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {websiteLeads.map((item, index) => {
-              return (
-                <tr>
-                  <td key={index}>{index + 1}</td>
-                  <td>{item.name}</td>
-                  <td>{item.phoneNumber}</td>
-                  <td>{item.service}</td>
-                  <td
-                    type="a"
-                    href={`tel:${item.phoneNumber}`}
-                    className="btn btn-success"
-                  >
-                    Call
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </>
-    );
-  };
+
   return (
     <div className="App overflow-hidden">
       <div className="row">
-        <div className="col-sm-12 col-md-2 col-lg-2 col-xl-2">
+        <div className="col-sm-12 col-md-2 col-lg-2 col-xl-2 mx-auto">
           <SideBarMenu />
         </div>
         <div className="col-sm-12 col-md-10 col-lg-10 col-xl-10 mx-auto">
