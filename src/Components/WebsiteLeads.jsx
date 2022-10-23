@@ -1,54 +1,73 @@
-import React, { useState, useEffect } from 'react'
-import { BASE_URL } from '../env';
+import React, { useState, } from 'react'
+import Loading from './Loading';
+import { routes } from '../CONSTANTS';
+import { useQuery } from 'react-query';
 const WebsiteLeads = () => {
     const [websiteLeads, setWebsiteLeads] = useState([]);
     const [openLeadModal, setOpenLeadModal] = useState(false);
-    const [name, setName] = useState("");
-    const [phoneNumber, setPhoneNumber] = useState("");
-    const [service, setService] = useState("");
-    const [email, setEmail] = useState("");
-    const [subject, setSubject] = useState("");
-    const [status, setStatus] = useState("");
-    const [source, setSource] = useState("");
-    useEffect(() => {
-        fetch(BASE_URL + "/get-websiteLeads", {
-            method: "get",
-            headers: {
-                "Content-Type": "application/json",
-            },
-        })
-            .then((res) => res.json())
-            .then((data) => {
-                console.log("Website leads");
-                setWebsiteLeads(data.message);
-            });
-    }, []);
-    const handleQuery = async () => {
-        await fetch("https://gigzman-backend.herokuapp.com/create-websiteLeads", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                name,
-                phoneNumber,
-                service,
-                email,
-                subject,
-                status,
-                source,
-            }),
-        })
-            .then((res) => res.json())
-            .then((data) => {
-                if (!data.error) {
-                    alert(data.message);
-                }
-                console.log(data.message);
-            });
-    };
+
 
     const HandleLeadModal = () => {
+        const [name, setName] = useState("");
+        const [phoneNumber, setPhoneNumber] = useState("");
+        const [service, setService] = useState("");
+        const [email, setEmail] = useState("");
+        const [subject, setSubject] = useState("");
+        const [status, setStatus] = useState("");
+        const [source, setSource] = useState("");
+        const handleQuery = async () => {
+            await fetch(routes.CREATE_LEADS, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    name,
+                    phoneNumber,
+                    service,
+                    email,
+                    subject,
+                    status,
+                    source,
+                }),
+            })
+                .then((res) => res.json())
+                .then((data) => {
+                    if (!data.error) {
+                        window.location.reload(false)
+                    }
+                    console.log(data.message);
+                });
+        };
+        const handleChanges = (e) => {
+            const { name, value } = e.target;
+            console.log(name, value);
+            switch (name) {
+                case "inputEmail":
+                    setEmail(value)
+                    break;
+                case "inputName":
+                    setName(value)
+                    break;
+                case "inputPhoneNumber":
+                    setPhoneNumber(value)
+                    break;
+                case "inputSubject":
+                    setSubject(value)
+                    break;
+                case "inputService":
+                    setService(value)
+                    break;
+                case "inputSource":
+                    setSource(value)
+                    break;
+                case "inputStatus":
+                    setStatus(value)
+                    break;
+                default:
+                    break;
+            }
+        }
         return (
             <>
                 <div
@@ -87,7 +106,7 @@ const WebsiteLeads = () => {
                                                 placeholder="Email"
                                                 className="form-control"
                                                 onChange={(e) => {
-                                                    setEmail(e.target.value);
+                                                    handleChanges(e);
                                                 }}
                                             />
                                         </div>
@@ -99,7 +118,7 @@ const WebsiteLeads = () => {
                                                 className="form-control"
                                                 placeholder="Name"
                                                 onChange={(e) => {
-                                                    setName(e.target.value);
+                                                    handleChanges(e);
                                                 }}
                                             />
                                         </div>
@@ -111,7 +130,7 @@ const WebsiteLeads = () => {
                                                 className="form-control"
                                                 placeholder="PhoneNumber"
                                                 onChange={(e) => {
-                                                    setPhoneNumber(e.target.value);
+                                                    handleChanges(e);
                                                 }}
                                             />
                                         </div>
@@ -126,7 +145,7 @@ const WebsiteLeads = () => {
                                                 className="form-control"
                                                 placeholder="Subject"
                                                 onChange={(e) => {
-                                                    setSubject(e.target.value);
+                                                    handleChanges(e);
                                                 }}
                                             />
                                         </div>
@@ -138,7 +157,7 @@ const WebsiteLeads = () => {
                                                 className="form-control"
                                                 placeholder="Service"
                                                 onChange={(e) => {
-                                                    setService(e.target.value);
+                                                    handleChanges(e);
                                                 }}
                                             />
                                         </div>
@@ -147,16 +166,16 @@ const WebsiteLeads = () => {
                                             <select
                                                 className="custom-select form-select"
                                                 id="inputSource"
+                                                name="inputSource"
                                                 value={source}
                                                 onChange={(e) => {
-                                                    setSource(e.target.value);
+                                                    handleChanges(e);
                                                 }}
                                             >
                                                 <option value="App Development">
                                                     App Development
                                                 </option>
                                                 <option value="Website Development">
-                                                    {" "}
                                                     Website Development
                                                 </option>
                                                 <option value="Development Services">
@@ -180,9 +199,10 @@ const WebsiteLeads = () => {
                                             <select
                                                 className="custom-select form-select"
                                                 id="inputStatus"
+                                                name="inputStatus"
                                                 value={status}
                                                 onChange={(e) => {
-                                                    setStatus(e.target.value);
+                                                    handleChanges(e);
                                                 }}
                                             >
                                                 <option label="Pending" value="pending">
@@ -232,6 +252,44 @@ const WebsiteLeads = () => {
             </>
         );
     };
+    const handleSetStatus = async (_id, value) => {
+        await fetch(routes.UPDATE_LEADS, {
+            method: "PUT", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                _id,
+                status: value
+            })
+        }).then(res => res.json()).then(data => {
+            console.log("website leads", data);
+        })
+    }
+    const handleLeadDelete = async (_id) => {
+        await fetch(routes.DELETE_LEADS + _id, {
+            method: "DELETE", headers: { "Content-Type": "application/json" }
+        }).then(res => res.json()).then((data) => {
+            if (!data.error) {
+                setWebsiteLeads(data.message)
+                alert("Lead Deleted")
+            }
+
+        })
+    }
+
+    const { data, status, error, isFetching } = useQuery(
+        'websiteLeads',
+        async () => {
+            const data = await
+                (
+                    await fetch(routes.WEBSITE_LEADS, {
+                        method: "GET", headers: { "Content-Type": "application/json" }
+                    })).json()
+            return (data)
+        }
+    )
+
+    if (isFetching) return <Loading />
+    if (error) return alert(error)
+
     return (
         <>
             <table className="table table-striped">
@@ -246,9 +304,9 @@ const WebsiteLeads = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {websiteLeads.map((item, index) => {
+                    {data?.message.length == 0 ? <Loading /> : data?.message.map((item, index) => {
                         return (
-                            <tr>
+                            <tr key={item._id}>
                                 <td key={index}>{index + 1}</td>
                                 <td>{item.name}</td>
                                 <td>{item.phoneNumber}</td>
@@ -259,7 +317,7 @@ const WebsiteLeads = () => {
                                         id="inputStatus"
                                         defaultValue={item.status}
                                         onChange={(e) => {
-                                            setStatus(e.target.value);
+                                            handleSetStatus(item._id, e.target.value);
                                         }}
                                     >
                                         <option label="Pending" value="pending">
@@ -276,13 +334,25 @@ const WebsiteLeads = () => {
                                         </option>
                                     </select>
                                 </td>
-                                <td
-                                    type="a"
-                                    href={`tel:${item.phoneNumber}`}
-                                    className="btn btn-success p-1 mt-3"
-                                >
-                                    Call
+                                <td>
+                                    <a
+                                        className="btn btn-success"
+                                        type="a"
+                                        href={`tel:${item.phoneNumber}`}>
+                                        <i class="fa fa-phone" aria-hidden="true"></i>
+                                    </a>
+
                                 </td>
+                                <td
+                                >
+                                    <button type="button"
+                                        className="btn btn-danger"
+                                        onClick={() => handleLeadDelete(item._id)}>
+                                        <i class="fa fa-trash" aria-hidden="true"></i>
+                                    </button>
+
+                                </td>
+
                             </tr>
                         );
                     })}

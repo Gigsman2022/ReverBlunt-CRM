@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { BASE_URL } from '../env'
+import Loading from './Loading';
+
+import { useQuery } from 'react-query'
+import { routes } from '../CONSTANTS';
 const NewFormResponseData = () => {
     const [formResponse, setFormResponse] = useState([]);
     const [openModal, setOpenModal] = useState(false);
@@ -16,29 +19,29 @@ const NewFormResponseData = () => {
     const [modalItem, setModalItem] = useState();
     const [loadTable, setLoadTable] = useState(false);
     const [editData, setEditData] = useState(false);
-    useEffect(() => {
-        fetch(BASE_URL + "/get-formData", {
-            method: "GET",
-            headers: { "Content-type": "application/json" },
-        })
-            .then((res) => res.json())
-            .then((data) => {
-                // console.log(data);
-                if (!data.error) {
-                    setFormResponse(data.message);
+    const [price, setPrice] = useState(0);
 
-                }
-            });
-    }, [loadTable]);
+    const { data, status, isFetching, error } = useQuery(
+        'unregistered_requests',
+        async () => {
+            const data = await
+                (
+                    await fetch(routes.UNREGISTERED_DATA, {
+                        method: "GET", headers: { "Content-Type": "application/json" }
+                    })).json()
+            return data
+        }, { retry: 2 }
+    )
+
     const
         UpdateFormData = async () => {
             console.log('clicked');
-            await fetch(BASE_URL + "/update-formData", {
+            await fetch("/update-formData", {
                 method: "put", headers: { "Content-type": "application/json" }, body: JSON.stringify({
-                    _id: _id, name, skills, P, Q, work_method, work_mode
+                    _id: _id, name, skills, P, Q, work_method, work_mode, price
                 })
             }).then(res => res.json()).then(data => {
-                console.log("udpate data", data.message);
+                console.log("update data", data.message);
                 if (!data.error) {
                     alert(data.message)
                 } else {
@@ -77,7 +80,7 @@ const NewFormResponseData = () => {
                         <div className="modal-body p-4 text-left">
                             <p className="text-dark">
                                 <span className="font-weight-bold">Email: </span>{" "}
-                                {modalItem?.email}
+                                <a href={`mailto:${modalItem?.email}`}>{modalItem?.email}</a>
                             </p>
                             <p className="text-dark">
                                 <span className="font-weight-bold">Mobile: </span>
@@ -85,7 +88,7 @@ const NewFormResponseData = () => {
                             </p>
                             <p className="text-dark">
                                 <span className="font-weight-bold">Portfolio: </span>
-                                {modalItem?.resume_link}
+                                <a href={modalItem?.resume_link} target="blank">{modalItem?.resume_link}</a>
                             </p>
                             <p className="text-dark">
                                 <span className="font-weight-bold">Work Method: </span>
@@ -172,7 +175,7 @@ const NewFormResponseData = () => {
         );
     };
     const registerUser = async (email) => {
-        await fetch(BASE_URL + "/register-formData", {
+        await fetch(routes.REGISTER_DATA, {
             method: "post",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -190,9 +193,9 @@ const NewFormResponseData = () => {
                 console.log("Error", err);
             });
     };
-    const deleteUser = async (email) => {
+    const deleteUser = async (_id) => {
         // console.log(email);
-        await fetch(BASE_URL + "/delete-formData/" + email, {
+        await fetch(routes.DELETE_DATA + _id, {
             method: "delete",
             headers: { "Content-Type": "application/json" },
         })
@@ -252,6 +255,10 @@ const NewFormResponseData = () => {
                                         <option value="High">High</option>
                                     </select>
                                 </div>
+                                <div className='my-1'>
+                                    <label className='form-label'>Price</label>
+                                    <input type="number" defaultValue={price} value={price} name="price" onChange={(e) => { setPrice(e.target.value) }} />
+                                </div>
 
                                 {/* <input className='form-control my-2' name="P" value={P} type="text" onChange={(e) => { setP(e.target.value) }} /> */}
 
@@ -296,6 +303,11 @@ const NewFormResponseData = () => {
                 </div>
             </div></>)
     }
+
+
+    if (isFetching) return <Loading />
+    if (error) return alert(error)
+
     return (
         <>
             <table class="table table-striped">
@@ -309,17 +321,17 @@ const NewFormResponseData = () => {
                         <th scope="col">P</th>
                         <th scope="col">Q</th>
                         <th scope="col">Skills</th>
-                        <th scope="col">Details</th>
+                        <th scope="col">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {formResponse.map((item, index) => {
-                        return item.registered ? null : (
+                    {data?.message.length == 0 ? <Loading /> : data?.message.map((item, index) => {
+                        return (
                             <tr key={index + 1}>
                                 <th scope="row">{index + 1}</th>
                                 <td>{item.name}</td>
-                                <td>{item.email}</td>
-
+                                <td> <a href={`mailto:${item.email}`}>{item.email}</a>
+                                </td>
                                 <td>{item.work_mode}</td>
                                 <td>{item.work_method}</td>
                                 <td>{item.P}</td>
@@ -329,36 +341,49 @@ const NewFormResponseData = () => {
                                         return <>{skill.length > 1 ? skill + "," : skill}</>;
                                     })}
                                 </td>
-                                <td
-                                    type="button"
-                                    className="btn btn-primary my-1 p-1"
-                                    onClick={() => {
-                                        setOpenModal(!openModal);
-                                        setModalItem(item);
-                                    }}
-                                >
-                                    Open
+                                <td >
+                                    <button
+                                        type="button"
+                                        className="btn btn-primary my-1 p-1"
+                                        onClick={() => {
+                                            setOpenModal(!openModal);
+                                            setModalItem(item);
+                                        }}
+                                        data-bs-toggle="tooltip" data-bs-placement="top"
+
+                                        data-bs-title="Open to View"         >
+                                        <i class="fa fa-eye" aria-hidden="true"></i>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="btn btn-warning my-1 ml-2 p-1"
+                                        onClick={() => {
+                                            registerUser(item.email);
+                                        }}
+                                        data-bs-toggle="tooltip" data-bs-placement="top"
+
+                                        data-bs-title="Register"
+                                    >
+                                        <i class="fa fa-list" aria-hidden="true"></i>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="btn btn-danger my-1 ml-2 p-1"
+                                        onClick={() => {
+                                            deleteUser(item._id);
+                                        }}
+                                        data-bs-toggle="tooltip" data-bs-placement="top"
+
+                                        data-bs-title="Delete"
+                                    >
+                                        <i class="fa fa-trash" aria-hidden="true"></i>
+                                    </button>
+
                                 </td>
                                 {openModal ? <Modal /> : null}
                                 {editData ? <ModalEditData /> : null}
-                                <td
-                                    type="button"
-                                    className="btn btn-warning my-1 ml-2 p-1"
-                                    onClick={() => {
-                                        registerUser(item.email);
-                                    }}
-                                >
-                                    Register
-                                </td>
-                                <td
-                                    type="button"
-                                    className="btn btn-danger my-1 ml-2 p-1"
-                                    onClick={() => {
-                                        deleteUser(item.email);
-                                    }}
-                                >
-                                    Delete
-                                </td>
+
+
                             </tr>
                         );
                     })}
