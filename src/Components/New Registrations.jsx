@@ -36,7 +36,7 @@ const NewFormResponseData = () => {
     const
         UpdateFormData = async () => {
             console.log('clicked');
-            await fetch("/update-formData", {
+            await fetch(routes.UPDATE_DATA, {
                 method: "put", headers: { "Content-type": "application/json" }, body: JSON.stringify({
                     _id: _id, name, skills, P, Q, work_method, work_mode, price
                 })
