@@ -3,4 +3,5 @@ module.exports = {
     process.env.NODE_ENV == "development"
       ? "http://localhost:5001"
       : "https://gigzman-backend.herokuapp.com",
+  //
 };
