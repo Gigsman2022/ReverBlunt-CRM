@@ -1,12 +1,20 @@
-import React, { useState, } from 'react'
+import React, { useState, useEffect } from 'react'
 import Loading from './Loading';
 import { routes } from '../CONSTANTS';
-import { useQuery } from 'react-query';
 const WebsiteLeads = () => {
     const [websiteLeads, setWebsiteLeads] = useState([]);
     const [openLeadModal, setOpenLeadModal] = useState(false);
-
-
+    useEffect(() => {
+        fetch(routes.WEBSITE_LEADS, {
+            method: "GET", headers: {
+                "Content-Type": "application/json"
+            }
+        }).then(res => res.json()).then(response => {
+            if (!response.error) {
+                setWebsiteLeads(response.message)
+            }
+        })
+    }, [])
     const HandleLeadModal = () => {
         const [name, setName] = useState("");
         const [phoneNumber, setPhoneNumber] = useState("");
@@ -275,20 +283,7 @@ const WebsiteLeads = () => {
         })
     }
 
-    const { data, status, error, isFetching } = useQuery(
-        'websiteLeads',
-        async () => {
-            const data = await
-                (
-                    await fetch(routes.WEBSITE_LEADS, {
-                        method: "GET", headers: { "Content-Type": "application/json" }
-                    })).json()
-            return (data)
-        }
-    )
 
-    if (isFetching) return <Loading />
-    if (error) return alert(error)
 
     return (
         <>
@@ -304,7 +299,7 @@ const WebsiteLeads = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {data?.message.length == 0 ? <Loading /> : data?.message.map((item, index) => {
+                    {websiteLeads?.length == 0 ? <Loading /> : websiteLeads.map((item, index) => {
                         return (
                             <tr key={item._id}>
                                 <td key={index}>{index + 1}</td>

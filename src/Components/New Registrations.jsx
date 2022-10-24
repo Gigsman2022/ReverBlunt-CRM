@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import Loading from './Loading';
-
-import { useQuery } from 'react-query'
 import { routes } from '../CONSTANTS';
 const NewFormResponseData = () => {
     const [formResponse, setFormResponse] = useState([]);
@@ -21,18 +19,14 @@ const NewFormResponseData = () => {
     const [editData, setEditData] = useState(false);
     const [price, setPrice] = useState(0);
 
-    const { data, status, isFetching, error } = useQuery(
-        'unregistered_requests',
-        async () => {
-            const data = await
-                (
-                    await fetch(routes.UNREGISTERED_DATA, {
-                        method: "GET", headers: { "Content-Type": "application/json" }
-                    })).json()
-            return data
-        }, { retry: 2 }
-    )
 
+    useEffect(() => {
+        fetch(routes.UNREGISTERED_DATA).then(res => res.json()).then(response => {
+            if (!response.error) { setFormResponse(response.message) }
+        }).catch(err => {
+            alert(err)
+        })
+    }, [])
     const
         UpdateFormData = async () => {
             console.log('clicked');
@@ -304,10 +298,6 @@ const NewFormResponseData = () => {
             </div></>)
     }
 
-
-    if (isFetching) return <Loading />
-    if (error) return alert(error)
-
     return (
         <>
             <table class="table table-striped">
@@ -325,7 +315,7 @@ const NewFormResponseData = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {data?.message.length == 0 ? <Loading /> : data?.message.map((item, index) => {
+                    {formResponse.length == 0 ? <Loading /> : formResponse.map((item, index) => {
                         return (
                             <tr key={index + 1}>
                                 <th scope="row">{index + 1}</th>

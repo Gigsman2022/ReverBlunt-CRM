@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import Loading from './Loading';
 import { routes } from '../CONSTANTS';
-import { useQuery } from 'react-query'
 import { useEffect } from 'react';
 
 const FormResponse = () => {
