@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import Loading from './Loading';
 import { routes } from '../CONSTANTS';
 import { useQuery } from 'react-query'
+import { useEffect } from 'react';
 
 const FormResponse = () => {
     const [formResponse, setFormResponse] = useState([]);
@@ -18,8 +19,7 @@ const FormResponse = () => {
         const [name, setName] = useState("");
         const handleSearch = async () => {
             await fetch(
-
-                "/filter-formData?email=" +
+                routes.FILTER_DATA + "?email=" +
                 email +
                 "&gender=" +
                 gender +
@@ -37,14 +37,14 @@ const FormResponse = () => {
                 }
             )
                 .then((res) => res.json())
-                .then((data) => {
-                    // console.log(data);
-                    if (!data.error) {
-                        console.log("data from search", data.message);
-                        setFormResponse(data.message);
+                .then((response) => {
+                    // console.log(response);
+                    if (!response.error) {
+                        console.log("data from search", response.message);
+                        setFormResponse(response.message)
                         setLoadTable(!loadTable);
                     }
-                });
+                })
         };
 
         const handleFormChangeData = (e) => {
@@ -108,8 +108,8 @@ const FormResponse = () => {
                             }}
                         >
                             <option selected>Work Mode</option>
-                            <option value="Fulltime">FullTime</option>
-                            <option value="Freelancer">Free Lancer</option>
+                            <option value="FullTime">FullTime</option>
+                            <option value="FreeLancer">FreeLancer</option>
                         </select>
                     </div>
                     <div>
@@ -310,21 +310,22 @@ const FormResponse = () => {
         );
     };
 
-    const { data, isFetching, status, error } = useQuery(
-        'registered_requests',
-        async () => {
-            const data = await
-                (
-                    await fetch(routes.REGISTERED_DATA, {
-                        method: "GET", headers: { "Content-Type": "application/json" }
-                    })).json()
-            return data
-        }
-    )
+    useEffect(() => {
+        fetch(routes.REGISTERED_DATA,
+            {
+                method: "GET",
+                headers:
+                    { "Content-Type": "application/json" }
+            }).then(res => res.json()).then(response => {
+                if (!response.error) {
+                    setFormResponse(response.message)
+                }
 
-    if (isFetching) return <Loading />
+            }).catch(err => {
+                alert(err)
+            })
+    }, [])
 
-    if (error) return alert(error)
 
     return (
         <>
@@ -343,7 +344,7 @@ const FormResponse = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {data?.message.length == 0 ? <Loading /> : data?.message.map((item, index) => {
+                    {formResponse.length == 0 ? <Loading /> : formResponse.map((item, index) => {
                         return (
                             <tr key={index + 1}>
                                 <th scope="row">{index + 1}</th>
